@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/azure/azure-dev/cli/azd/cmd/actions"
 	"github.com/azure/azure-dev/cli/azd/internal"
@@ -141,10 +142,37 @@ func newEnvSetAction(
 }
 
 func (e *envSetAction) Run(ctx context.Context) (*actions.ActionResult, error) {
+	// 初步解决方案，需要考虑key值相等的情况
+	file, err := os.Open(e.envManager.EnvPath(e.env))
+	if err != nil {
+		return nil, fmt.Errorf("reading file error: %w", err)
+	}
+	defer file.Close()
+
+	content, err := io.ReadAll(file)
+	if err != nil {
+		return nil, fmt.Errorf("reading content error: %w", err)
+	}
+
+	contentStr := string(content)
+
 	e.env.DotenvSet(e.args[0], e.args[1])
 
 	if err := e.envManager.Save(ctx, e.env); err != nil {
 		return nil, fmt.Errorf("saving environment: %w", err)
+	}
+
+	updatedContent := contentStr + "\n" + e.args[0] + "=" + e.args[1]
+
+	file, err = os.OpenFile(e.envManager.EnvPath(e.env), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return nil, fmt.Errorf("opening file error: %w", err)
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(updatedContent)
+	if err != nil {
+		return nil, fmt.Errorf("writing file error: %w", err)
 	}
 
 	return nil, nil

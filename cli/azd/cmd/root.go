@@ -32,6 +32,8 @@ import (
 // middlewareChain - nil, except for running unit tests
 // rootContainer - The IoC container to use for registering and resolving dependencies. If nil is provided, a new
 // container empty will be created.
+
+// tcNote: 2. 绑定整个命令组及其相关的上下文和参数
 func NewRootCmd(
 	staticHelp bool,
 	middlewareChain []*actions.MiddlewareRegistration,
@@ -362,6 +364,7 @@ func NewRootCmd(
 		panic(err)
 	}
 
+	// tcNote: 3. 绑定RunE入口
 	cmd, err := cobraBuilder.BuildCommand(root)
 
 	if err != nil {

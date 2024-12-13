@@ -106,6 +106,8 @@ func (r *MiddlewareRunner) RunAction(
 			}
 
 			log.Printf("running middleware '%s'\n", middlewareName)
+			// 这里有两个非递归部分！
+			// tcNote: 7. 递归执行当前命令绑定的中间件
 			return middleware.Run(ctx, nextFn)
 		} else {
 			var action actions.Action
@@ -123,6 +125,7 @@ func (r *MiddlewareRunner) RunAction(
 				return nil, err
 			}
 
+			// tcNote: 9. 最后执行Run
 			return action.Run(ctx)
 		}
 	}

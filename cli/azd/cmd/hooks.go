@@ -41,7 +41,7 @@ func hooksActions(root *actions.ActionDescriptor) *actions.ActionDescriptor {
 func newHooksRunFlags(cmd *cobra.Command, global *internal.GlobalCommandOptions) *hooksRunFlags {
 	flags := &hooksRunFlags{}
 	flags.Bind(cmd.Flags(), global)
-
+	
 	return flags
 }
 
@@ -103,6 +103,7 @@ func newHooksRunAction(
 
 const noHookFoundMessage = " (No hook found)"
 
+// 1. 获取基础信息。检查hooks是否合法。区分ProjectLevel和ServiceLevel。然后processHooks。
 func (hra *hooksRunAction) Run(ctx context.Context) (*actions.ActionResult, error) {
 	hookName := hra.args[0]
 
@@ -170,6 +171,7 @@ func (hra *hooksRunAction) Run(ctx context.Context) (*actions.ActionResult, erro
 	}, nil
 }
 
+// 2. 做更细致的检查
 func (hra *hooksRunAction) processHooks(
 	ctx context.Context,
 	cwd string,
@@ -181,23 +183,28 @@ func (hra *hooksRunAction) processHooks(
 ) error {
 	hra.console.ShowSpinner(ctx, spinnerMessage, input.Step)
 
+	// 为true跳过
 	if skip {
 		hra.console.StopSpinner(ctx, spinnerMessage, input.StepSkipped)
 		return nil
 	}
 
+	// 查看是否有hooks需要执行
 	if len(hooks) == 0 {
 		hra.console.StopSpinner(ctx, spinnerMessage+noHookFoundMessage, input.StepWarning)
 		return nil
 	}
 
+	// 检查是pre还是post
 	hookType, commandName := ext.InferHookType(hookName)
 
 	for _, hook := range hooks {
+		// 检查配置项
 		if err := hra.prepareHook(hookName, hook); err != nil {
 			return err
 		}
 
+		// 循环执行
 		err := hra.execHook(ctx, previewMessage, cwd, hookType, commandName, hook)
 		if err != nil {
 			hra.console.StopSpinner(ctx, spinnerMessage, input.StepFailed)
@@ -207,10 +214,10 @@ func (hra *hooksRunAction) processHooks(
 		// The previewer cancels the previous spinner so we need to restart/show it again.
 		hra.console.StopSpinner(ctx, spinnerMessage, input.StepDone)
 	}
-
 	return nil
 }
 
+// 3. 注入运行时所需要的环境变量
 func (hra *hooksRunAction) execHook(
 	ctx context.Context,
 	previewMessage string,
@@ -226,6 +233,8 @@ func (hra *hooksRunAction) execHook(
 	}
 
 	hooksManager := ext.NewHooksManager(cwd)
+	// hra.env为环境变量
+	// &{test-tc-asdhkjh4 map[AZURE_ENV_NAME:test-tc-asdhkjh4] map[] 0xc000284ed0}
 	hooksRunner := ext.NewHooksRunner(hooksManager, hra.commandRunner, hra.envManager, hra.console, cwd, hooksMap, hra.env)
 
 	previewer := hra.console.ShowPreviewer(ctx, &input.ShowPreviewerOptions{
@@ -236,6 +245,9 @@ func (hra *hooksRunAction) execHook(
 	defer hra.console.StopPreviewer(ctx, false)
 
 	runOptions := &tools.ExecOptions{StdOut: previewer}
+	// 再次执行
+	// fmt.Println(hookType, '-', commandName, '-', hookName)
+	// post  package  postpackage
 	err := hooksRunner.RunHooks(ctx, hookType, runOptions, commandName)
 	if err != nil {
 		return err

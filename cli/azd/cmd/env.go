@@ -212,6 +212,7 @@ func newEnvListAction(
 	formatter output.Formatter,
 	writer io.Writer,
 ) actions.Action {
+	fmt.Println("asdasd")
 	return &envListAction{
 		envManager: envManager,
 		azdCtx:     azdCtx,

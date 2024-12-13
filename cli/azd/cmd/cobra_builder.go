@@ -90,6 +90,7 @@ func (cb *CobraBuilder) configureActionResolver(cmd *cobra.Command, descriptor *
 		return nil
 	}
 
+	// tcNote: 4. 绑定RunE
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		// Register root go context that will be used for resolving singleton dependencies
 		ctx := tools.WithInstalledCheckCache(cmd.Context())
@@ -127,6 +128,7 @@ func (cb *CobraBuilder) configureActionResolver(cmd *cobra.Command, descriptor *
 
 		// Run the middleware chain with action
 		actionName := createActionName(cmd)
+		// tcNote: 6. 调用RunAction
 		_, err = middlewareRunner.RunAction(ctx, runOptions, actionName)
 
 		// At this point, we know that there might be an error, so we can silence cobra from showing it after us.

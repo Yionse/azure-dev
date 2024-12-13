@@ -29,6 +29,7 @@ func (m *UxMiddleware) Run(ctx context.Context, next NextFn) (*actions.ActionRes
 		return next(ctx)
 	}
 
+	// tcNote: 8. 再次执行nextFn
 	actionResult, err := next(ctx)
 
 	// Stop the spinner always to un-hide cursor

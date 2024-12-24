@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: todo-nodejs-mongo
+metadata:
+  template: todo-nodejs-mongo@0.0.1-beta
+# workflows:
+#   up:
+#     steps:
+#       - azd: provision
+#       - azd: package
+#       - azd: deploy --all
+hooks:
+  prerestore:
+    posix:
+      shell: sh
+      # run: update.sh
+      interactive: true
+  prepackage:
+    windows:
+      shell: pwsh
+      run: echo '11111'
+      interactive: true
+  preprovision:
+    windows:
+      shell: pwsh
+      run: echo '22222'
+      interactive: true
+  preup:
+    windows:
+      shell: pwsh
+      run: echo '44444'
+      interactive: true
+  postup:
+    windows:
+      shell: pwsh
+      run: echo '55555'
+      interactive: true
+  postpackage:
+    windows:
+      shell: pwsh
+      run: echo 'CCCCCCC'
+      interactive: true
+  # postrestore:
+  #   windows:
+  #     shell: pwsh
+  #     run: azd env get-values; azd env set postrestore postrestore
+  #     interactive: true
+services:
+  web:
+    project: ./src/web
+    dist: dist
+    language: js
+    host: appservice
+    hooks:
+      # Creates a temporary `.env.local` file for the build command. Vite will automatically use it during build.
+      # The expected/required values are mapped to the infrastructure outputs.
+      # .env.local is ignored by git, so it will not be committed if, for any reason, if deployment fails.
+      # see: https://vitejs.dev/guide/env-and-mode
+      # Note: Notice that dotenv must be a project dependency for this to work. See package.json.
+      # prepackage:
+      #   windows:
+      #     shell: pwsh
+      #     run: echo 'PPPPPPPPPPP'
+      #     interactive: true
+      # postpackage:
+      #   windows:
+      #     shell: pwsh
+      #     run: echo 'EEEEEEEEEEEEE'
+      #     interactive: true
+      # prerestore:
+      #   windows:
+      #     shell: pwsh
+      #     run: azd env get-values; azd env set serviceprerestore serviceprerestore
+      #     interactive: true
+      # postrestore:
+      #   windows:
+      #     shell: pwsh
+      #     run: azd env get-values; azd env set servicepostrestore servicepostrestore
+      #     interactive: true
+  api:
+    project: ./src/api
+    language: js
+    host: appservice

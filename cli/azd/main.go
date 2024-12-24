@@ -59,11 +59,10 @@ func main() {
 	latest := make(chan semver.Version)
 	go fetchLatestVersion(latest)
 
-	// Note: RunE在这里定义
 	rootContainer := ioc.NewNestedContainer(nil)
 	ioc.RegisterInstance(rootContainer, ctx)
 	
-	// Note: 1.获取整个azd命令的对象，然后将ctx(上下文对象,传入ExecuteContext方法执行,这里看为两步)
+	// tcNote: 1.获取整个azd命令的对象，然后将ctx(上下文对象,传入ExecuteContext方法执行,这里看为两步)
 	cmdErr := cmd.NewRootCmd(false, nil, rootContainer).ExecuteContext(ctx)
 
 	oneauth.Shutdown()

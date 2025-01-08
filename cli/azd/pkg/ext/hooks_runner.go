@@ -162,7 +162,18 @@ func (h *HooksRunner) execHook(ctx context.Context, hookConfig *HookConfig, opti
 	var isRunWithNoProfile bool
 	if hookConfig.Shell == "pwsh" {
 		if hookConfig.Run != "" {
-			isRunWithNoProfile = strings.Contains(strings.ToLower(hookConfig.Run), "-noprofile")
+			configArr := strings.Fields(hookConfig.Run)
+			if len(configArr) > 2 {
+				configArr = configArr[1 : len(configArr)-1]
+			} else {
+				configArr = []string{}
+			}
+			for _, value := range configArr {
+				if strings.Contains(strings.ToLower(value), "-noprofile") {
+					isRunWithNoProfile = true
+					break
+				}
+			}
 		}
 	}
 	options.IsRunWithNoProfile = isRunWithNoProfile
